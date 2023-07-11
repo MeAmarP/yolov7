@@ -118,11 +118,14 @@ def detect(save_img=False):
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
-                    if save_txt:  # Write to file
+                    if save_txt == 'xyxy':  # Write to file
+                        xywh = [int(ele.tolist()) for ele in xyxy]
+                    else:
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
-                        with open(txt_path + '.txt', 'a') as f:
-                            f.write(('%g ' * len(line)).rstrip() % line + '\n')
+                    line = (names[int(cls)], *xywh, conf) if opt.save_conf else (names[int(cls)], *xywh)  # label format
+                    with open(txt_path + '.txt', 'a') as f:
+                        line = ' '.join(str(item) for item in line)
+                        f.write(line + '\n')
 
                     if save_img or view_img:  # Add bbox to image
                         label = f'{names[int(cls)]} {conf:.2f}'
@@ -172,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='display results')
-    parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
+    parser.add_argument('--save-txt', type=str, default='xywh', help='save results to *.txt, format xywh (by default) or xyxy')
     parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
     parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
     parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --class 0, or --class 0 2 3')
